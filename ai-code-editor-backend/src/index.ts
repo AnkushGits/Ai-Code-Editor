@@ -1,34 +1,50 @@
-import "dotenv/config";
-import express from "express";
-import cors from "cors";
+export interface FileItem {
+  name: string
+  language: string
+  content: string
+}
 
-// ── Route imports ───────────────────────────────────────────────
-import reviewRouter from "./routes/reviewRoute.js";
-import intentRouter from "./routes/intentRoute.js";
-import memoryRouter from "./routes/memoryRoute.js";
+export interface FileSystemFileHandle {}
+export interface FileSystemDirectoryHandle {}
 
-// ── App setup ───────────────────────────────────────────────────
-const app = express();
-const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3001;
+// A node in the real, disk-backed workspace tree (files and folders
+// opened via "Open Folder" or drag-and-drop, plus loose in-memory files
+// created via "+ New File" before they've ever been saved).
+export interface FileNode {
+  id: string // stable path-based id, e.g. "root/src/App.tsx"
+  name: string
+  kind: 'file' | 'directory'
+  language?: string // only for files
+  content?: string // only for files; undefined until loaded
+  isDirty?: boolean // has unsaved changes since last disk write
+  isBinaryOrTooLarge?: boolean // file exists but we didn't load its content
+  children?: FileNode[] // only for directories
+  isExpanded?: boolean // only for directories, UI state
+  // Real browser handles enabling actual disk read/write.
+  // Present only in Chromium browsers with File System Access API support.
+  fileHandle?: FileSystemFileHandle
+  dirHandle?: FileSystemDirectoryHandle
+}
 
-// ── Middleware ───────────────────────────────────────────────────
-app.use(cors());
-app.use(express.json({ limit: "2mb" }));
+export interface ReviewComment {
+  id: string
+  severity: 'error' | 'warning' | 'info'
+  title: string
+  description: string
+  line?: number
+}
 
-// ── Routes ──────────────────────────────────────────────────────
-app.use("/api/review", reviewRouter);    // POST /apiAction
-app.use("/api/intent", intentRouter);
-app.use("/api/memory", memoryRouter);
+export interface ChatMessage {
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+  timestamp: number
+}
 
-// ── Health check ─────────────────────────────────────────────────
-app.get("/health", (_req, res) => {
-  res.json({ status: "ok", uptime: process.uptime() });
-});
+export interface DiffContent {
+  before: string
+  after: string
+}
 
-// ── Start server ─────────────────────────────────────────────────
-app.listen(PORT, () => {
-  console.log(`🚀 AI Code Editor backend running on http://localhost:${PORT}`);
-});
-
-export default app;
+export type Mode = 'intent' | 'review' | 'memory'
 
