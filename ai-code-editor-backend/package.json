@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "start": "tsx src/index.ts",
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
